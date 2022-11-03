@@ -1,31 +1,45 @@
 import csv
+import os
 from modules.Message import Message
 from modules.ProcessFRCSV import ProcessFRCSV
 import struct
+import hashlib
 
-def openFile(path):
-    file = open(path, 'rb')
 
-    return file
+# check the meta data and hash value of .DAT file
+def checkMeta(path):
+    meta = os.stat(path)
+
+    md5 = hashlib.md5()
+    sha1 = hashlib.sha1()
+    sha512 = hashlib.sha512()
+
+    with open(path, 'rb') as f:
+        buf = f.read()
+        md5.update(buf)
+        sha1.update(buf)
+        sha512.update(buf)
+
+    return meta, md5.hexdigest(), sha1.hexdigest(), sha512.hexdigest()
 
 
 # check the type of .DAT file
-def checkType(file):
-    # file = input .DAT file
-    # test_file = openFile("TestData/inspireFLY018.DAT")
-    f_header = file.read(256)
-    print(f_header)
+def checkType(path):
+    # test_file = open("TestData/inspireFLY018.DAT", 'rb')
 
-    # Type P1
-    if f_header[16:21].decode('ascii') == b"BUILD".decode('ascii'):
-        print("Type P1. It's available.")
-        decodeP1(file)
-    elif f_header[242, 252].decode('ascii') == b"DJI_LOG_V3".decode('ascii'):
-        print("Type P2. It's available.")
-    elif f_header[0:4].decode('ascii') == b"LOGH".decode('ascii'):
-        print("Type E1.")
-    else:
-        raise NotDATFileError(file)
+    with open(path, 'rb') as f:
+        f_header = f.read(256)
+        print(f_header)
+
+        if f_header[16:21].decode('ascii') == b"BUILD".decode('ascii'):
+            print("Type P1. It's available.")
+            decodeP1(f)
+        elif f_header[242:252].decode('ascii') == b"DJI_LOG_V3".decode('ascii'):
+            print("Type P2. It's available.")
+        elif f_header[0:4].decode('ascii') == b"LOGH".decode('ascii'):
+            print("Type E1.")
+        else:
+            raise NotDATFileError(f)
 
 
 def decodeP1(fn):
