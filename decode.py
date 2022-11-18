@@ -1,13 +1,15 @@
+#-*- coding:utf-8 -*-
 import csv
 import os
 from modules.Message import Message
-from modules.ProcessFRCSV import ProcessFRCSV
 import struct
 import hashlib
 
 
+
 # check the meta data and hash value of .DAT file
 def checkMeta(path):
+    print("path", path)
     meta = os.stat(path)
 
     md5 = hashlib.md5()
@@ -24,29 +26,31 @@ def checkMeta(path):
 
 
 # check the type of .DAT file
-def checkType(path):
-    # test_file = open("TestData/inspireFLY018.DAT", 'rb')
+def checkType(in_path, out_path):
 
-    with open(path, 'rb') as f:
+    meta, md5, sha1, sha512 = checkMeta(in_path)
+    print("Before: ", meta, md5, sha1, sha512)
+
+    with open(in_path, 'rb') as f:
         f_header = f.read(256)
-        print(f_header)
+        print(f_header[0:4])
 
-        if f_header[16:21].decode('ascii') == b"BUILD".decode('ascii'):
+        if f_header[0:4] == b"LOGH":
+            print("Type E1.")
+            return 0
+        elif f_header[242:252] == b"DJI_LOG_V3":
+            print("Type P2. It's available.")
+            return 0
+            #decodeP2(meta, f, out_path)
+        elif f_header[16:21] == b"BUILD":
             print("Type P1. It's available.")
             f.seek(0)
-            decodeP1(f)
-        elif f_header[242:252].decode('ascii') == b"DJI_LOG_V3".decode('ascii'):
-            print("Type P2. It's available.")
-            decodeP2(path)
-        elif f_header[0:4].decode('ascii') == b"LOGH".decode('ascii'):
-            print("Type E1.")
+            decodeP1(meta, f, out_path)
         else:
             raise NotDATFileError(f)
 
 
-def decodeP1(in_path, out_path):
-    meta, md5, sha1, sha512 = checkMeta(in_path)
-    print("Before: ", meta, md5, sha1, sha512)
+def decodeP1(meta, in_file, out_path):
 
     out_path = out_path + "\output.csv"
     out_file = open(out_path, 'w')
@@ -57,7 +61,6 @@ def decodeP1(in_path, out_path):
     alternateStructure = False
 
     try:
-        in_file = open(in_path, 'rb')
         header = in_file.read(128)  # set the right start of payload
 
         byte = in_file.read(1)  # read the first byte of the payload
@@ -132,19 +135,12 @@ def decodeP1(in_path, out_path):
 
         writer.writerow(message.getRow())  # write the last row
 
-        """
-            Original Code from GitHub, Devon Clark, DROP Project
-        """
-
     finally:
         in_file.close()
         out_file.close()
 
-        after_meta, after_md5, after_sha1, after_sha512 = checkMeta(in_path)
-        print("After: ", after_meta, after_md5, after_sha1, after_sha512)
 
-
-def decodeP2(path):
+def decodeP2(meta, in_file, out_path):
     return 0
 
 
