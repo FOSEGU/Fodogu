@@ -1,3 +1,7 @@
+# python3
+# Subin Jo
+# 2022. 10. 31
+
 import sys
 from PyQt5 import QtCore, QtWidgets, uic
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox

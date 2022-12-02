@@ -1,11 +1,13 @@
-#-*- coding:utf-8 -*-
+# python3
+# Subin Jo
+# 2022. 11. 02
+
 import csv
 import os
 from modules.Message import Message
 import struct
 import hashlib
-
-
+import aes_cbc
 
 # check the meta data and hash value of .DAT file
 def checkMeta(path):
@@ -36,18 +38,46 @@ def checkType(in_path, out_path):
         print(f_header[0:4])
 
         if f_header[0:4] == b"LOGH":
+            # E1
             print("Type E1.")
             return 0
         elif f_header[242:252] == b"DJI_LOG_V3":
-            print("Type P2. It's available.")
+            # P2, E3
+            print("Type P2 or E3. It's available.")
             return 0
             #decodeP2(meta, f, out_path)
         elif f_header[16:21] == b"BUILD":
+            # Signature of P1. but all types have it except P3, P4
             print("Type P1. It's available.")
             f.seek(0)
             decodeP1(meta, f, out_path)
         else:
-            raise NotDATFileError(f)
+            f.seek(0)
+            decodeE2(meta, f, out_path)
+            #raise NotDATFileError(f)
+
+
+def check16Bytes(f_size):
+    print("File Size: ", f_size)
+    if f_size % 16 != 0:
+        print("Try extractDJI.py first")
+        return True
+    else:
+        print("Available")
+        return False
+
+
+def decodeE2(meta, in_file, out_path):
+    out_path = out_path + "\output.DAT"
+    bflag = check16Bytes(meta.st_size)
+    if bflag:
+        # not E2
+        print("It's unavailable")
+        return 0
+    else:
+        print("Start")
+        aes_cbc.aes_decrypt(bytes.fromhex('756e617661696c61626c650000000000'), b"0123456789abcdef", in_file, out_path)
+        print("Complete")
 
 
 def decodeP1(meta, in_file, out_path):
@@ -139,9 +169,6 @@ def decodeP1(meta, in_file, out_path):
         in_file.close()
         out_file.close()
 
-
-def decodeP2(meta, in_file, out_path):
-    return 0
 
 
 # custom exception
