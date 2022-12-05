@@ -29,7 +29,7 @@ def checkMeta(path):
 def decrypt_aes_e2(data):
     key = bytes.fromhex('756e617661696c61626c650000000000')
     iv = b"0123456789abcdef"
-    Cipher = AES_CBC(key, iv)
+    Cipher = AES.new(key, AES.MODE_CBC, iv)
     plain = Cipher.decrypt(data)
     return plain
 
@@ -78,17 +78,18 @@ def checkType(in_path, out_path):
             decryptE2(meta, f, out_path)
             checkType(out_path+"output_e2.DAT", out_path)
         else:
+            print("nothing")
             #raise NotDATFileError(f)
 
 
 def decryptE2(meta, in_file, out_path):
     out_path = out_path + "output_e2.DAT"
     print("decryptE2 Start")
-    enc_buf = f.read()
+    enc_buf = in_file.read()
     dec_buf = decrypt_aes_e2(enc_buf)
 
     out_f = open(out_path, "wb")
-    out_f.write(dec_buf)
+    out_f.write(dec_buf[16:])
     out_f.close()
     print("decryptE2 Complete")
 
