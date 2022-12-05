@@ -1,6 +1,6 @@
 # python3
 # writer : Mingyu Seong
-# 2022 10 12
+# 2022 12 05
 import zlib, struct, os
 
 ###################################
@@ -30,37 +30,40 @@ def mkdirFromFilename(outputBase, filename):
     fileDirPath = "/".join(a)
     os.makedirs(outputBase+fileDirPath, exist_ok=True)
 
+def extractDJI_main(INPUT_FILENAME, OUTPUT_PATH):
+    with open(INPUT_FILENAME, "rb") as f:
+        data = f.read()
 
-with open(INPUT_FILENAME, "rb") as f:
-    data = f.read()
+    if(isDJIDat(data)):
+        dedata = zlib.decompress(data)
+        #f = open('test.dat', "wb")
+        #f.write(dedata)
+        #f.close
+        remain = len(dedata)
+        while(remain > 0):
+            try:
+                uncompressedFileLength = struct.unpack("<I",dedata[1:5])[0]
+                #print(uncompressedFileLength)
+                filename = getStrings(dedata, 7)
+                print(filename)
+                mkdirFromFilename(OUTPUT_PATH, filename)
+                payload = dedata[283:uncompressedFileLength+283]
 
-if(isDJIDat(data)):
-    dedata = zlib.decompress(data)
-    #f = open('test.dat', "wb")
-    #f.write(dedata)
-    #f.close
-    remain = len(dedata)
-    while(remain > 0):
-        try:
-            uncompressedFileLength = struct.unpack("<I",dedata[1:5])[0]
-            #print(uncompressedFileLength)
-            filename = getStrings(dedata, 7)
-            print(filename)
-            mkdirFromFilename(OUTPUT_PATH, filename)
-            payload = dedata[283:uncompressedFileLength+283]
+                f = open(OUTPUT_PATH+filename, "wb")
+                f.write(payload)
+                f.close
 
-            f = open(OUTPUT_PATH+filename, "wb")
-            f.write(payload)
-            f.close
+                dedata = dedata[uncompressedFileLength+283:]
+                remain = len(dedata)
+                #print(len(remain))
+            except Exception as e:
+                print(e)
+                raise
+        print("done")
 
-            dedata = dedata[uncompressedFileLength+283:]
-            remain = len(dedata)
-            #print(len(remain))
-        except Exception as e:
-            print(e)
-            raise
-    print("done")
+    else:
+        print("This is not DJI DAT")
+        exit()
 
-else:
-    print("This is not DJI DAT")
-    exit()
+if __name__ == '__main__':
+    extractDJI_main(INPUT_FILENAME, OUTPUT_PATH)

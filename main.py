@@ -5,7 +5,7 @@
 import sys
 from PyQt5 import QtCore, QtWidgets, uic
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox
-import decode
+import decode, extractDJI
 
 ui = uic.loadUiType('UI/main.ui')[0]
 
@@ -22,14 +22,19 @@ class MainWindow(QMainWindow, ui):
         self.d_outputbtn.clicked.connect(self.selectDir)
         self.d_startbtn.clicked.connect(self.startDecode)
 
+        self.e_inputbtn.clicked.connect(self.selectDAT)
+        self.e_outputbtn.clicked.connect(self.selectDir)
+        self.e_startbtn.clicked.connect(self.startExtract)
+
     def selectDAT(self):
         # path = select input .DAT file path
         path = QFileDialog.getOpenFileName(self, "Select File")
         if path[0]:
             self.ifn = path[0]
             self.d_itext.setText(self.ifn)
+            self.e_itext.setText(self.ifn)
         else:
-            QMessageBox.about(self, 'Warning', '파일을 선택하지 않았습니다.')
+            QMessageBox.about(self, 'Warning', 'you didn\' select a file.')
         #self.d_itext.repaint()
 
     def selectDir(self):
@@ -38,8 +43,9 @@ class MainWindow(QMainWindow, ui):
         if path:
             self.ofn = path
             self.d_otext.setText(self.ofn)
+            self.e_otext.setText(self.ofn)
         else:
-            QMessageBox.about(self, 'Warning', '폴더를 선택하지 않았습니다.')
+            QMessageBox.about(self, 'Warning', 'you didn\' select a folder.')
 
 
     def startDecode(self):
@@ -49,6 +55,12 @@ class MainWindow(QMainWindow, ui):
         strResult += "Complete Decoding\n"
         self.d_result.setText(strResult)
 
+    def startExtract(self):
+        strResult = ""
+        strResult += "Start Extracting\n"
+        extractDJI.extractDJI_main(self.ifn, self.ofn)
+        strResult += "Complete Extracting\n"
+        self.e_result.setText(strResult)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)

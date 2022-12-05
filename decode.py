@@ -7,7 +7,7 @@ import os
 from modules.Message import Message
 import struct
 import hashlib
-import aes_cbc
+from Cryptodome.Cipher import AES
 
 # check the meta data and hash value of .DAT file
 def checkMeta(path):
@@ -26,6 +26,28 @@ def checkMeta(path):
 
     return meta, md5.hexdigest(), sha1.hexdigest(), sha512.hexdigest()
 
+def decrypt_aes_e2(data):
+    key = bytes.fromhex('756e617661696c61626c650000000000')
+    iv = b"0123456789abcdef"
+    Cipher = AES_CBC(key, iv)
+    plain = Cipher.decrypt(data)
+    return plain
+
+def check16BytesforE2(f_size, header16):
+    print("File Size: ", f_size)
+    if f_size == 0:
+        print("Empty File")
+        return False
+    elif f_size % 16 != 0:
+        print("Try extractDJI.py first")
+        return False
+    else:
+        plainheader16 = decrypt_aes_e2(header16)
+        first = plainheader16.decode('utf-8').rstrip('\x00')
+        if first.isdigit():
+            return True
+        else:
+            return False
 
 # check the type of .DAT file
 def checkType(in_path, out_path):
@@ -35,7 +57,7 @@ def checkType(in_path, out_path):
 
     with open(in_path, 'rb') as f:
         f_header = f.read(256)
-        print(f_header[0:4])
+        #print(f_header[0:4])
 
         if f_header[0:4] == b"LOGH":
             # E1
@@ -51,33 +73,24 @@ def checkType(in_path, out_path):
             print("Type P1. It's available.")
             f.seek(0)
             decodeP1(meta, f, out_path)
-        else:
+        elif check16BytesforE2(meta.st_size, f_header[:16]):
             f.seek(0)
-            decodeE2(meta, f, out_path)
+            decryptE2(meta, f, out_path)
+            checkType(out_path+"output_e2.DAT", out_path)
+        else:
             #raise NotDATFileError(f)
 
 
-def check16Bytes(f_size):
-    print("File Size: ", f_size)
-    if f_size % 16 != 0:
-        print("Try extractDJI.py first")
-        return True
-    else:
-        print("Available")
-        return False
+def decryptE2(meta, in_file, out_path):
+    out_path = out_path + "output_e2.DAT"
+    print("decryptE2 Start")
+    enc_buf = f.read()
+    dec_buf = decrypt_aes_e2(enc_buf)
 
-
-def decodeE2(meta, in_file, out_path):
-    out_path = out_path + "\output.DAT"
-    bflag = check16Bytes(meta.st_size)
-    if bflag:
-        # not E2
-        print("It's unavailable")
-        return 0
-    else:
-        print("Start")
-        aes_cbc.aes_decrypt(bytes.fromhex('756e617661696c61626c650000000000'), b"0123456789abcdef", in_file, out_path)
-        print("Complete")
+    out_f = open(out_path, "wb")
+    out_f.write(dec_buf)
+    out_f.close()
+    print("decryptE2 Complete")
 
 
 def decodeP1(meta, in_file, out_path):
