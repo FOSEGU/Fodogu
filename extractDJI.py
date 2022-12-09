@@ -30,7 +30,7 @@ def mkdirFromFilename(outputBase, filename):
     fileDirPath = "/".join(a)
     os.makedirs(outputBase+fileDirPath, exist_ok=True)
 
-def extractDJI_main(INPUT_FILENAME, OUTPUT_PATH):
+def extractDJI_main(INPUT_FILENAME, OUTPUT_PATH, strResult):
     with open(INPUT_FILENAME, "rb") as f:
         data = f.read()
 
@@ -59,11 +59,15 @@ def extractDJI_main(INPUT_FILENAME, OUTPUT_PATH):
             except Exception as e:
                 print(e)
                 raise
-        print("done")
+        strResult += "Done.\n"
+        print("Done.")
 
     else:
-        print("This is not DJI DAT")
+        strResult += "This is not DJI DAT.\n"
+        print("This is not DJI DAT.")
         exit()
+
+    return strResult
 
 if __name__ == '__main__':
     extractDJI_main(INPUT_FILENAME, OUTPUT_PATH)

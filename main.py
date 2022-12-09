@@ -13,6 +13,7 @@ ui = uic.loadUiType('UI/main.ui')[0]
 class MainWindow(QMainWindow, ui):
     ifn = ""
     ofn = ""
+    strResult = ""
 
     def __init__(self):
         super().__init__()
@@ -34,7 +35,7 @@ class MainWindow(QMainWindow, ui):
             self.d_itext.setText(self.ifn)
             self.e_itext.setText(self.ifn)
         else:
-            QMessageBox.about(self, 'Warning', 'you didn\' select a file.')
+            QMessageBox.about(self, 'Warning', 'you didn\'t select a file.')
         #self.d_itext.repaint()
 
     def selectDir(self):
@@ -45,22 +46,21 @@ class MainWindow(QMainWindow, ui):
             self.d_otext.setText(self.ofn)
             self.e_otext.setText(self.ofn)
         else:
-            QMessageBox.about(self, 'Warning', 'you didn\' select a folder.')
+            QMessageBox.about(self, 'Warning', 'you didn\'t select a folder.')
 
 
     def startDecode(self):
-        strResult = ""
-        strResult += "Start Decoding\n"
-        decode.checkType(self.ifn, self.ofn)
-        strResult += "Complete Decoding\n"
-        self.d_result.setText(strResult)
+        self.strResult += "Start Decoding\n"
+        self.strResult = decode.checkType(self.ifn, self.ofn, self.strResult)
+        #print("self.strResult: ", self.strResult)
+        self.strResult += "Complete Decoding\n"
+        self.d_result.setText(self.strResult)
 
     def startExtract(self):
-        strResult = ""
-        strResult += "Start Extracting\n"
-        extractDJI.extractDJI_main(self.ifn, self.ofn)
-        strResult += "Complete Extracting\n"
-        self.e_result.setText(strResult)
+        self.strResult += "Start Extracting\n"
+        self.strResult = extractDJI.extractDJI_main(self.ifn, self.ofn, self.strResult)
+        self.strResult += "Complete Extracting\n"
+        self.e_result.setText(self.strResult)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)

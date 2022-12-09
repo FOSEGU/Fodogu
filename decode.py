@@ -11,6 +11,7 @@ from Cryptodome.Cipher import AES
 
 # check the meta data and hash value of .DAT file
 def checkMeta(path):
+    result = ""
     print("path", path)
     meta = os.stat(path)
 
@@ -24,7 +25,18 @@ def checkMeta(path):
         sha1.update(buf)
         sha512.update(buf)
 
-    return meta, md5.hexdigest(), sha1.hexdigest(), sha512.hexdigest()
+    result += "\n====================================[File Info.]====================================\n"
+    result += "File Size: "
+    result += str(meta.st_size)
+    result += "\nMD5: "
+    result += md5.hexdigest()
+    result += "\nSHA1: "
+    result += sha1.hexdigest()
+    result += "\nSHA512: "
+    result += sha512.hexdigest()
+    result += "\n===================================================================================\n"
+
+    return meta, md5.hexdigest(), sha1.hexdigest(), sha512.hexdigest(), result
 
 def decrypt_aes_e2(data):
     key = bytes.fromhex('756e617661696c61626c650000000000')
@@ -50,9 +62,10 @@ def check16BytesforE2(f_size, header16):
             return False
 
 # check the type of .DAT file
-def checkType(in_path, out_path):
+def checkType(in_path, out_path, strResult):
 
-    meta, md5, sha1, sha512 = checkMeta(in_path)
+    meta, md5, sha1, sha512, result = checkMeta(in_path)
+    strResult += result
     print("Before: ", meta, md5, sha1, sha512)
 
     with open(in_path, 'rb') as f:
@@ -61,42 +74,50 @@ def checkType(in_path, out_path):
 
         if f_header[0:4] == b"LOGH":
             # E1
-            print("Type E1.")
+            strResult += "Type E1.\n"
             return 0
         elif f_header[242:252] == b"DJI_LOG_V3":
             # P2, E3
-            print("Type P2 or E3. It's available.")
-            return 0
+            strResult += "Type P2 or E3. It's available.\n"
             #decodeP2(meta, f, out_path)
+            strResult += "It will be added later.\n"
+            f.close()
         elif f_header[16:21] == b"BUILD":
             # Signature of P1. but all types have it except P3, P4
-            print("Type P1. It's available.")
+            strResult += "Type P1. It's available.\n"
             f.seek(0)
             decodeP1(meta, f, out_path)
         elif check16BytesforE2(meta.st_size, f_header[:16]):
             f.seek(0)
-            decryptE2(meta, f, out_path)
-            checkType(out_path+"output_e2.DAT", out_path)
+            strResult += decryptE2(f, out_path)
+            strResult += "Start decrypting E3.\n"
+            strResult = checkType(out_path+"\output_e2.DAT", out_path, strResult)
         else:
-            print("nothing")
+            strResult += "nothing\n"
             #raise NotDATFileError(f)
+    return strResult
 
 
-def decryptE2(meta, in_file, out_path):
-    out_path = out_path + "output_e2.DAT"
-    print("decryptE2 Start")
+def decryptE2(in_file, out_path):
+    result = ""
+    out_path = out_path + "/output_e2.DAT"
+    #print("decryptE2 Start")
+    result += "Start decrypting E2.\n"
     enc_buf = in_file.read()
     dec_buf = decrypt_aes_e2(enc_buf)
 
     out_f = open(out_path, "wb")
     out_f.write(dec_buf[16:])
     out_f.close()
-    print("decryptE2 Complete")
+    #print("decryptE2 Complete")
+    result += "Complete decrypting E2.\n"
+
+    return result
 
 
 def decodeP1(meta, in_file, out_path):
 
-    out_path = out_path + "\output.csv"
+    out_path = out_path + "/output.csv"
     out_file = open(out_path, 'w')
     writer = csv.DictWriter(out_file, lineterminator='\n', fieldnames=Message.fieldnames)
     writer.writeheader()
