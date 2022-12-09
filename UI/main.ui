@@ -134,7 +134,7 @@
       <property name="geometry">
        <rect>
         <x>40</x>
-        <y>220</y>
+        <y>200</y>
         <width>700</width>
         <height>45</height>
        </rect>
@@ -143,69 +143,14 @@
        <string>Start</string>
       </property>
      </widget>
-     <widget class="QTextBrowser" name="textBrowser">
+     <widget class="QTextBrowser" name="e_result">
       <property name="geometry">
        <rect>
         <x>40</x>
-        <y>280</y>
+        <y>260</y>
         <width>700</width>
-        <height>120</height>
+        <height>150</height>
        </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_3">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>120</y>
-        <width>100</width>
-        <height>30</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Mode</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="checkBox">
-      <property name="geometry">
-       <rect>
-        <x>130</x>
-        <y>130</y>
-        <width>200</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>FL (Flight Log)</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="checkBox_2">
-      <property name="geometry">
-       <rect>
-        <x>130</x>
-        <y>160</y>
-        <width>200</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>MM (Multi Media)</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="checkBox_3">
-      <property name="geometry">
-       <rect>
-        <x>130</x>
-        <y>190</y>
-        <width>200</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>II (Identifiable Information)</string>
       </property>
      </widget>
      <widget class="QWidget" name="gridLayoutWidget_3">
