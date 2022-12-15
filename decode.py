@@ -1,10 +1,11 @@
 # python3
-# Subin Jo
-# 2022. 11. 02
+# Subin Jo, Mingyu Seong
+# 2022. 12. 15
 
 import csv
 import os
 from modules.Message import Message
+from modulesV3.Message import MessageV3
 import struct
 import hashlib
 from Cryptodome.Cipher import AES
@@ -37,6 +38,13 @@ def checkMeta(path):
     result += "\n===================================================================================\n"
 
     return meta, md5.hexdigest(), sha1.hexdigest(), sha512.hexdigest(), result
+
+def isE3type(buf):
+    if buf == 63: #DJI Mini 2
+        return True
+    else:
+        return False
+
 
 def decrypt_aes_e2(data):
     key = bytes.fromhex('756e617661696c61626c650000000000')
@@ -78,10 +86,12 @@ def checkType(in_path, out_path, strResult):
             return 0
         elif f_header[242:252] == b"DJI_LOG_V3":
             # P2, E3
-            strResult += "Type P2 or E3. It's available.\n"
-            #decodeP2(meta, f, out_path)
-            strResult += "It will be added later.\n"
-            f.close()
+            if isE3type(f_header[0]):
+                strResult += "Type E3. It's unavailable.\n"
+            else:
+                strResult += "Type P2. It's available.\n"
+                f.seek(0)
+                decodeP2(meta, f, out_path)
         elif f_header[16:21] == b"BUILD":
             # Signature of P1. but all types have it except P3, P4
             strResult += "Type P1. It's available.\n"
@@ -113,6 +123,73 @@ def decryptE2(in_file, out_path):
     result += "Complete decrypting E2.\n"
 
     return result
+
+def decodeP2(meta, in_file, out_path):
+
+    out_path = out_path + "/output.csv"
+    out_file = open(out_path, 'w')
+    writer = csv.DictWriter(out_file, lineterminator='\n', fieldnames=MessageV3.fieldnames)
+    writer.writeheader()
+
+
+    try:
+        data = f.read()
+
+        message = None
+        message = Message(meta)
+
+        offset = 0x100
+        remain = len(data) - offset
+        ext_len = 0
+        while(remain > 0):
+            try:
+                pkt_sig = data[offset+0]
+
+                if pkt_sig != 0x55:
+                    offset+=1
+                    ext_len+=1
+                    continue
+
+                pkt_len = data[offset+1]
+                if pkt_len == 0x00:
+                    offset+=1
+                    ext_len+=1
+                    continue
+
+                pkt_pad = data[offset+2]
+                if pkt_pad != 0x00:
+                    offset+=1
+                    ext_len+=1
+                    continue
+
+                #pkt_crc8 = data[offset+3]
+
+                #pkt_type = struct.unpack("<H",data[offset+4:offset+6])[0]
+
+                pkt_tickno = struct.unpack("<I",data[offset+6:offset+10])[0]
+                if messageV3.tickNo == None:
+                    messageV3.setTickNo(pkt_tickno)
+
+                pkt_payload = data[offset+10:offset+pkt_len]
+
+                messageV3.writeRow(writer, pkt_tickno)
+
+                header = data[offset+3:offset+10]
+                messageV3.addPacket(pkt_len, pkt_type, pkt_payload)
+                #print(pkt_tickno)
+
+                offset += pkt_len
+                remain -= ext_len+pkt_len
+                ext_len = 0
+            except Exception as e:
+                print(e)
+                break
+
+        writer.writerow(messageV3.getRow())  # write the last row
+
+    finally:
+        in_file.close()
+        out_file.close()
 
 
 def decodeP1(meta, in_file, out_path):
