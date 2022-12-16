@@ -28,7 +28,7 @@ class MainWindow(QMainWindow, ui):
         self.e_outputbtn.clicked.connect(self.selectDir)
         self.e_startbtn.clicked.connect(self.startExtract)
 
-        self.csv_btn.clicked.connect(self.showCSV)
+        self.csv_btn.clicked.connect(self.showFlight)
 
     def selectDAT(self):
         # path = select input .DAT file path
@@ -87,8 +87,8 @@ class FlightWindow(QtWidgets.QDialog, QWidget):
 
         layout = QVBoxLayout()
         self.setLayout(layout)
-        lines = showmap.getGPS(path)
-        mdata = showmap.mappingGPS(lines)
+        lines = showFlight.getGPS(path)
+        mdata = showFlight.mappingGPS(lines)
         webview = QWebEngineView()
         webview.setHtml(mdata.getvalue().decode())
         layout.addWidget(webview)
