@@ -4,9 +4,9 @@
 
 import sys, os
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QWidget, QHBoxLayout, QVBoxLayout
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QWidget, QVBoxLayout
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-import decode, extractDJI, showmap
+import decode, extractDJI, showFlight
 
 ui = uic.loadUiType('UI/main.ui')[0]
 
@@ -64,16 +64,7 @@ class MainWindow(QMainWindow, ui):
         self.strResult += "Complete Extracting\n"
         self.e_result.setText(self.strResult)
 
-    def showCSV(self):
-        """
-        <TestCode>
-        p = 'SampleData/inspireFLY009.csv'
-        if os.path.exists(p):
-            print("Show Flight Window")
-            sw = FlightWindow(p)
-            sw.exec()
-        else:
-            print("CSV not found")"""
+    def showFlight(self):
         if os.path.exists(self.ifn) and os.path.exists(self.ofn):
             p = self.ofn + "/" + os.path.basename(self.ifn) + "_output.csv"
             print(p)
