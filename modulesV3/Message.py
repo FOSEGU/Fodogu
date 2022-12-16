@@ -12,8 +12,8 @@ import simplekml
 
 class MessageV3:
     # *** add the other field names later
-    fieldnames = [ 'messageid', 'offsetTime', 'logDateTime', 'time(millisecond)',
-    'latitude', 'longitude', 'vel'
+    fieldnames = [ 'messageid', 'offsetTime', 'date', 'time',
+    'longitude', 'latitude', 'velN', 'velE', 'velD',  'vel'
     ]
     tickNo = None
     tickOffset = 0
@@ -68,7 +68,7 @@ class MessageV3:
             self.setTickNo(tickNoRead)
             self.row_out = dict(self.row_out, **packet.getItems())
             self.packetNum += 1
-            if packet.pkttype == GPSPayload._type:      # GPS Packet
+            if packet.pkttype == GPSPayloadV3._type:      # GPS Packet
                 if self.row_out.get('latitude') and self.row_out.get('longitude'):
                     if self.row_out['latitude'] != '' and self.row_out['longitude'] != '':
                         self.gps_fr_dict[self.row_out['time']] = [self.row_out['latitude'], self.row_out['longitude'], self.row_out['vel']]
@@ -82,7 +82,7 @@ class MessageV3:
             offsetTime = ''
         #logDateTime = datetime.datetime.fromtimestamp(self.startUNIXTime + int(offsetTime)).strftime('%Y-%m-%d %H:%M:%S')
         logDateTime = ''
-        return dict(self.row_out, **{'messageid':self.tickNo, 'offsetTime':offsetTime, 'logDateTime':logDateTime})
+        return dict(self.row_out, **{'messageid':self.tickNo, 'offsetTime':offsetTime})
 
     def writeKml(self, row):
         if self.kmlWriter != None:
