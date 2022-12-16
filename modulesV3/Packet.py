@@ -21,11 +21,11 @@ class PacketV3:
         self.payload = self.processPayload(payload)
 
     def processPayload(self, payload):
-        if self.pkttype == GPSPayload._type:      # GPS Packet
+        if self.pkttype == GPSPayloadV3._type:      # GPS Packet
             self.label = 'GPS'
             #print(str(self.tickNo) + ' - GPS pkt len: ' + str(self.pktlen))
             payload = self.decode(payload)
-            pld_obj = GPSPayload(payload)
+            pld_obj = GPSPayloadV3(payload)
             if len(pld_obj.data) > 0:
                 return pld_obj
         return None

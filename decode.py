@@ -90,7 +90,7 @@ def checkType(in_path, out_path, strResult):
                 strResult += "Type E3. It's unavailable.\n"
             else:
                 strResult += "Type P2. It's available.\n"
-                f.seek(0)
+                f.seek(0x100)
                 decodeP2(meta, f, out_path)
         elif f_header[16:21] == b"BUILD":
             # Signature of P1. but all types have it except P3, P4
@@ -102,6 +102,10 @@ def checkType(in_path, out_path, strResult):
             strResult += decryptE2(f, out_path)
             strResult += "Start decrypting E3.\n"
             strResult = checkType(out_path+"\output_e2.DAT", out_path, strResult)
+        elif f_header[0] == 0x55 and f_header[2] == 0x0:
+            strResult += "Possible Type P4. It's available.\n"
+            f.seek(0x100)
+            decodeP2(meta, f, out_path)
         else:
             strResult += "nothing\n"
             #raise NotDATFileError(f)
@@ -133,12 +137,12 @@ def decodeP2(meta, in_file, out_path):
 
 
     try:
-        data = f.read()
+        data = in_file.read()
 
-        message = None
-        message = Message(meta)
+        messageV3 = None
+        messageV3 = MessageV3(meta)
 
-        offset = 0x100
+        offset = 0x0
         remain = len(data) - offset
         ext_len = 0
         while(remain > 0):
@@ -175,7 +179,7 @@ def decodeP2(meta, in_file, out_path):
                 messageV3.writeRow(writer, pkt_tickno)
 
                 header = data[offset+3:offset+10]
-                messageV3.addPacket(pkt_len, pkt_type, pkt_payload)
+                messageV3.addPacket(pkt_len, header, pkt_payload)
                 #print(pkt_tickno)
 
                 offset += pkt_len

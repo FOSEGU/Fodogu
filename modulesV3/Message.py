@@ -13,8 +13,7 @@ import simplekml
 class MessageV3:
     # *** add the other field names later
     fieldnames = [ 'messageid', 'offsetTime', 'logDateTime', 'time(millisecond)',
-    'latitude', 'longitude', 'satnum', 'gpsHealth', 'altitude', 'baroAlt',
-    'velN', 'velE', 'velD', 'vel', 'velH',
+    'latitude', 'longitude', 'vel'
     ]
     tickNo = None
     tickOffset = 0
@@ -62,7 +61,7 @@ class MessageV3:
 
     def addPacket(self, pktlen, header, payload):
         # everything we need to do with the packet obj should be done here because we dont retain them
-        packet = Packet(pktlen, header, payload)
+        packet = PacketV3(pktlen, header, payload)
         tickNoRead = struct.unpack('I', packet.header[3:7])[0]
         if packet.payload != None and tickNoRead >= 0:
             self.addedData = True
@@ -72,7 +71,7 @@ class MessageV3:
             if packet.pkttype == GPSPayload._type:      # GPS Packet
                 if self.row_out.get('latitude') and self.row_out.get('longitude'):
                     if self.row_out['latitude'] != '' and self.row_out['longitude'] != '':
-                        self.gps_fr_dict[self.row_out['time']] = [self.row_out['latitude'], self.row_out['longitude']]
+                        self.gps_fr_dict[self.row_out['time']] = [self.row_out['latitude'], self.row_out['longitude'], self.row_out['vel']]
             return True
         return False
 
