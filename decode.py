@@ -71,6 +71,7 @@ def check16BytesforE2(f_size, header16):
 
 # check the type of .DAT file
 def checkType(in_path, out_path, strResult):
+    ifn = os.path.basename(in_path)
 
     meta, md5, sha1, sha512, result = checkMeta(in_path)
     strResult += result
@@ -91,30 +92,30 @@ def checkType(in_path, out_path, strResult):
             else:
                 strResult += "Type P2. It's available.\n"
                 f.seek(0x100)
-                decodeP2(meta, f, out_path)
+                decodeP2(meta, f, out_path, ifn)
         elif f_header[16:21] == b"BUILD":
             # Signature of P1. but all types have it except P3, P4
             strResult += "Type P1. It's available.\n"
             f.seek(0)
-            decodeP1(meta, f, out_path)
+            decodeP1(meta, f, out_path, ifn)
         elif check16BytesforE2(meta.st_size, f_header[:16]):
             f.seek(0)
-            strResult += decryptE2(f, out_path)
+            strResult += decryptE2(f, out_path, ifn)
             strResult += "Start decrypting E3.\n"
-            strResult = checkType(out_path+"\output_e2.DAT", out_path, strResult)
+            strResult = checkType(out_path + "/" + ifn + "_output.DAT", out_path, strResult)
         elif f_header[0] == 0x55 and f_header[2] == 0x0:
             strResult += "Possible Type P4. It's available.\n"
             f.seek(0x100)
-            decodeP2(meta, f, out_path)
+            decodeP2(meta, f, out_path, ifn)
         else:
             strResult += "nothing\n"
             #raise NotDATFileError(f)
     return strResult
 
 
-def decryptE2(in_file, out_path):
+def decryptE2(in_file, out_path, ifn):
     result = ""
-    out_path = out_path + "/output_e2.DAT"
+    out_path = out_path + "/" + ifn + "_output.DAT"
     #print("decryptE2 Start")
     result += "Start decrypting E2.\n"
     enc_buf = in_file.read()
@@ -128,9 +129,9 @@ def decryptE2(in_file, out_path):
 
     return result
 
-def decodeP2(meta, in_file, out_path):
+def decodeP2(meta, in_file, out_path, ifn):
 
-    out_path = out_path + "/output.csv"
+    out_path = out_path + "/" + ifn + "_output.csv"
     out_file = open(out_path, 'w')
     writer = csv.DictWriter(out_file, lineterminator='\n', fieldnames=MessageV3.fieldnames)
     writer.writeheader()
@@ -196,9 +197,9 @@ def decodeP2(meta, in_file, out_path):
         out_file.close()
 
 
-def decodeP1(meta, in_file, out_path):
+def decodeP1(meta, in_file, out_path, ifn):
 
-    out_path = out_path + "/output.csv"
+    out_path = out_path + "/" + ifn + "_output.csv"
     out_file = open(out_path, 'w')
     writer = csv.DictWriter(out_file, lineterminator='\n', fieldnames=Message.fieldnames)
     writer.writeheader()
